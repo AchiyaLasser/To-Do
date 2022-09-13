@@ -1,6 +1,7 @@
 package com.example.to_do;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
@@ -10,6 +11,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
@@ -34,6 +36,7 @@ import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, Toolbar.OnMenuItemClickListener {
 
@@ -56,6 +59,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         fab = findViewById(R.id.fab);
         fab.setOnClickListener(this);
 
+
         coordinatorLayout = findViewById(R.id.coordinatorLayout);
 
         lv = findViewById(R.id.lv);
@@ -63,24 +67,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_multiple_choice, list);
         lv.setAdapter(arrayAdapter);
         deleteItem();
+        loadItem();
 
-        list.add("aaa");
-        list.add("bbb");
-        list.add("ccc");
-        list.add("ddd");
-        list.add("eee");
-        list.add("fff");
-        list.add("ggg");
-        list.add("hhh");
-        list.add("iii");
-        list.add("jjj");
-        list.add("kkk");
-        list.add("lll");
-        list.add("mmm");
-        list.add("nnn");
-        list.add("ooo");
-        list.add("ppp");
-        list.add("qqq");
 
     }
 
@@ -106,18 +94,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     public void onClick(DialogInterface dialog, int which) {
                         lv.setItemChecked(position, false);
                         arrayAdapter.remove(lv.getItemAtPosition(position));
-                    }
-                });
+                        String str = lv.getItemAtPosition(position).toString();
+                        list.remove(str);
+                        }
+                    });
                 builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         lv.setItemChecked(position, false);
                     }
                 });
-                builder.setCancelable(true);
+                builder.setCancelable(false);
                 AlertDialog dialog = builder.create();
                 builder.show();
             }
+
         });
     }
 
@@ -149,6 +140,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if(etDialog.getText() != null) {
                     note = etDialog.getText().toString();
                     list.add(note);
+                    saveItems();
                 }
                 else Toast.makeText(MainActivity.this, "Please name the note", Toast.LENGTH_SHORT).show();
             }
@@ -162,5 +154,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
         noteDialog.show();
     }
+    public void saveItems(){
+        StringBuilder stringBuilder = new StringBuilder();
+        for(String s : list){
+            stringBuilder.append(s);
+            stringBuilder.append(",");
+        }
+        SharedPreferences itemList = getSharedPreferences("PREFS", 0);
+        SharedPreferences.Editor itemListEditor = itemList.edit();
+        itemListEditor.clear();
+        itemListEditor.putString("list", stringBuilder.toString());
+        itemListEditor.commit();
+    }
+    public void loadItem(){
+        SharedPreferences itemList = getSharedPreferences("PREFS", 0);
+        String listString = itemList.getString("list", "");
+        String[] arrWords = listString.split(",");
+        for(int i = 0 ; i < arrWords.length ; i++)
+            list.add(arrWords[i]);
+
+    }
+
 
 }
