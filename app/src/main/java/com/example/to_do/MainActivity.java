@@ -1,101 +1,77 @@
 package com.example.to_do;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
-
 import android.app.AlertDialog;
-import android.app.Dialog;
-import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Handler;
-import android.util.Log;
+import android.text.Html;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.Switch;
 import android.widget.Toast;
-
 import com.google.android.material.bottomappbar.BottomAppBar;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
-
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, Toolbar.OnMenuItemClickListener {
 
     BottomAppBar bottomAppBar;
     FloatingActionButton fab;
     ListView lv;
-    List<String> list;
+    ArrayList<String> list;
     CoordinatorLayout coordinatorLayout;
     ArrayAdapter arrayAdapter;
     String note;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        getSupportActionBar().setTitle(Html.fromHtml("<font color='#21272C'>ActionBarTitle </font>"));
+        loadItem();
         bottomAppBar = findViewById(R.id.bottomAppBar);
         bottomAppBar.setOnMenuItemClickListener(this);
         fab = findViewById(R.id.fab);
         fab.setOnClickListener(this);
-
-
         coordinatorLayout = findViewById(R.id.coordinatorLayout);
 
         lv = findViewById(R.id.lv);
-        list = new ArrayList<>();
         arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_multiple_choice, list);
         lv.setAdapter(arrayAdapter);
         deleteItem();
-        loadItem();
-
-
     }
 
     @Override
     public void onClick(View v) {
-
         if(v == fab){
-            createNoteDialog();
+            createNote();
         }
-
     }
 
     public void deleteItem(){
-
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                 builder.setMessage("delete this note?");
                 builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         lv.setItemChecked(position, false);
-                        arrayAdapter.remove(lv.getItemAtPosition(position));
                         String str = lv.getItemAtPosition(position).toString();
+                        arrayAdapter.remove(lv.getItemAtPosition(position));
                         list.remove(str);
+                        saveItems();
                         }
                     });
                 builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -105,29 +81,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                 });
                 builder.setCancelable(false);
-                AlertDialog dialog = builder.create();
                 builder.show();
             }
-
         });
     }
 
     @Override
     public boolean onMenuItemClick(MenuItem item) {
-
         int id = item.getItemId();
         switch(id){
             case R.id.miHome:
-
                 return  true;
             case R.id.miSearch:
-
                 return true;
         }
         return false;
     }
 
-    public void createNoteDialog(){
+    public void createNote(){
         AlertDialog.Builder noteDialog = new AlertDialog.Builder(MainActivity.this);
         EditText etDialog = new EditText(MainActivity.this);
         noteDialog.setView(etDialog);
@@ -137,15 +108,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         noteDialog.setPositiveButton("Apply", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                if(etDialog.getText() != null) {
+                if(etDialog.getText() == null)
+                    Toast.makeText(MainActivity.this, "Please name the note", Toast.LENGTH_SHORT).show();
+                else{
                     note = etDialog.getText().toString();
                     list.add(note);
                     saveItems();
                 }
-                else Toast.makeText(MainActivity.this, "Please name the note", Toast.LENGTH_SHORT).show();
             }
         });
-
         noteDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -154,26 +125,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
         noteDialog.show();
     }
+
     public void saveItems(){
-        StringBuilder stringBuilder = new StringBuilder();
-        for(String s : list){
-            stringBuilder.append(s);
-            stringBuilder.append(",");
-        }
-        SharedPreferences itemList = getSharedPreferences("PREFS", 0);
+        SharedPreferences itemList = getSharedPreferences("ItemList", 0);
         SharedPreferences.Editor itemListEditor = itemList.edit();
-        itemListEditor.clear();
-        itemListEditor.putString("list", stringBuilder.toString());
+        Gson gson = new Gson();
+        String json = gson.toJson(list);
+        itemListEditor.putString("items", json);
         itemListEditor.commit();
     }
+
     public void loadItem(){
-        SharedPreferences itemList = getSharedPreferences("PREFS", 0);
-        String listString = itemList.getString("list", "");
-        String[] arrWords = listString.split(",");
-        for(int i = 0 ; i < arrWords.length ; i++)
-            list.add(arrWords[i]);
+        SharedPreferences itemList = getSharedPreferences("ItemList", 0);
+        Gson gson = new Gson();
+        String json = itemList.getString("items", null);
+        Type type = new TypeToken<ArrayList<String>>() {}.getType();
+        list = gson.fromJson(json, type);
 
+        if(list == null)
+            list = new ArrayList<>();
     }
-
-
 }
