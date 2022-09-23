@@ -7,12 +7,4 @@
         android:icon="@drawable/ic_home"
         app:showAsAction="ifRoom"/>
 
-
-
-    <item android:id="@+id/miSearch"
-        android:title="Search"
-        android:icon="@drawable/ic_search"
-        app:showAsAction="ifRoom"/>
-
-
 </menu>

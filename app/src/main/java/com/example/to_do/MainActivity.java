@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        getSupportActionBar().setTitle(Html.fromHtml("<font color='#21272C'>ActionBarTitle </font>"));
+        getSupportActionBar().setTitle(null);
         loadItem();
         bottomAppBar = findViewById(R.id.bottomAppBar);
         bottomAppBar.setOnMenuItemClickListener(this);
