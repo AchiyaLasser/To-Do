@@ -1,13 +1,12 @@
 package com.example.to_do;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
-import android.text.Html;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -17,16 +16,15 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.Toast;
-import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, Toolbar.OnMenuItemClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    BottomAppBar bottomAppBar;
     FloatingActionButton fab;
     ListView lv;
     ArrayList<String> list;
@@ -39,14 +37,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        getSupportActionBar().setTitle(null);
         loadItem();
-        bottomAppBar = findViewById(R.id.bottomAppBar);
-        bottomAppBar.setOnMenuItemClickListener(this);
         fab = findViewById(R.id.fab);
         fab.setOnClickListener(this);
         coordinatorLayout = findViewById(R.id.coordinatorLayout);
-
         lv = findViewById(R.id.lv);
         arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_multiple_choice, list);
         lv.setAdapter(arrayAdapter);
@@ -86,40 +80,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                builder.setMessage("delete this note?");
-                builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+
+                String deletedNote = list.get(position);
+                lv.setItemChecked(position, false);
+                String str = lv.getItemAtPosition(position).toString();
+                arrayAdapter.remove(lv.getItemAtPosition(position));
+                list.remove(str);
+                saveItems();
+                Snackbar snackbar = Snackbar.make(coordinatorLayout, "Note deleted", Snackbar.LENGTH_LONG);
+                snackbar.setAction("UNDO", new View.OnClickListener() {
                     @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        lv.setItemChecked(position, false);
-                        String str = lv.getItemAtPosition(position).toString();
-                        arrayAdapter.remove(lv.getItemAtPosition(position));
-                        list.remove(str);
+                    public void onClick(View v) {
+                        list.add(position, deletedNote);
+                        arrayAdapter.notifyDataSetChanged();
                         saveItems();
-                        }
-                    });
-                builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        lv.setItemChecked(position, false);
+                        Snackbar.make(coordinatorLayout, "Note has been recovered", Snackbar.LENGTH_LONG).show();
                     }
-                });
-                builder.setCancelable(false);
-                builder.show();
+                }).setActionTextColor(Color.RED);
+                snackbar.show();
             }
         });
-    }
-
-    @Override
-    public boolean onMenuItemClick(MenuItem item) {
-        int id = item.getItemId();
-        if(id == R.id.miHome){
-
-        }
-        else if(id == R.id.action_search){
-
-        }
-        return false;
     }
 
     public void createNote(){

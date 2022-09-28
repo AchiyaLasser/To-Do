@@ -22,25 +22,14 @@
 
     </LinearLayout>
 
-    <com.google.android.material.bottomappbar.BottomAppBar
-        android:id="@+id/bottomAppBar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:backgroundTint="#2E8BBD"
-        app:fabCradleRoundedCornerRadius="50dp"
-        app:fabCradleMargin="10dp"
-        app:fabAlignmentMode="end"
-        app:menu="@menu/bottom_nav_menu"
-        app:navigationIcon="@drawable/ic_menu"/>
-
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:src="@drawable/ic_add"
         android:backgroundTint="#2E8BBD"
         app:maxImageSize="30dp"
-        app:layout_anchor="@id/bottomAppBar"/>
+        android:layout_gravity="bottom|end"
+        android:layout_margin="10dp"/>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
