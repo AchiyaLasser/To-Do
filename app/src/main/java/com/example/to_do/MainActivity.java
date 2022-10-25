@@ -4,8 +4,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.media.AudioAttributes;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -31,6 +34,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     CoordinatorLayout coordinatorLayout;
     ArrayAdapter arrayAdapter;
     String note;
+    SoundPool sp;
+    int sound;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +50,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_multiple_choice, list);
         lv.setAdapter(arrayAdapter);
         deleteItem();
+
+        AudioAttributes aa = new AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).setUsage(AudioAttributes.USAGE_GAME).build();
+        sp = new SoundPool.Builder().setMaxStreams(10).setAudioAttributes(aa).build();
+        sound = sp.load(this,R.raw.delete,1);
+
     }
 
     @Override
@@ -76,6 +86,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return true;
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        super.onOptionsItemSelected(item);
+        int id = item.getItemId();
+        if (id == R.id.action_help) {
+            Intent intent = new Intent(MainActivity.this, HelpActivity.class);
+            startActivity(intent);
+        }
+        return true;
+    }
+
     public void deleteItem(){
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -86,6 +107,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 String str = lv.getItemAtPosition(position).toString();
                 arrayAdapter.remove(lv.getItemAtPosition(position));
                 list.remove(str);
+                sp.play(sound, 1, 1, 0, 0, 1);
                 saveItems();
                 Snackbar snackbar = Snackbar.make(coordinatorLayout, "Note deleted", Snackbar.LENGTH_LONG);
                 snackbar.setAction("UNDO", new View.OnClickListener() {
